@@ -1,0 +1,40 @@
+modules = ["go-1.21", "nodejs-20", "web"]
+[agent]
+expertMode = true
+stack = "BEST_EFFORT_FALLBACK"
+
+[nix]
+channel = "stable-25_05"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=5000 ALLOW_NO_PROXY=true ./bin/mmb-server"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[deployment]
+deploymentTarget = "vm"
+run = ["bash", "-c", "PORT=5000 ALLOW_NO_PROXY=true ./bin/mmb-server"]
+build = ["bash", "-c", "cd web-client && npm install --no-audit --no-fund && npm run build && cd .. && mkdir -p bin/web-client && cp -r web-client/dist/public/* bin/web-client/ && go build -o bin/mmb-server ./cmd/mmb-server"]
